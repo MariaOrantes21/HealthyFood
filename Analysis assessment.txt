@@ -1,0 +1,168 @@
+USE fmban_sql_analysis;
+
+SELECT *
+FROM fmban_data;
+
+
+-- unhealthy food 
+SELECT *
+FROM fmban_data
+WHERE (sugarconscious = 0 AND lowsodium = 0 AND lowfat = 0 AND category <> 'NULL' AND category <> 'supplements') OR category IN ('wine', 'beer');
+
+-- average price of unhealthy food 
+SELECT SUM(price_items)/SUM(number_items) AS avg_unfoodwithalc
+FROM(
+	SELECT SUM(price/100) AS price_items, COUNT(ID) AS number_items
+	FROM fmban_data
+	WHERE (sugarconscious = 0 AND lowsodium = 0 AND lowfat = 0 AND category <> 'NULL') AND category NOT IN ('wine', 'beer', 'supplements')
+	UNION
+	SELECT SUM(price), COUNT(ID)
+	FROM fmban_data
+	WHERE category IN ('wine', 'beer')) AS unhealthy_food_alc;
+
+
+-- healthy food
+SELECT *
+FROM fmban_data
+WHERE ID NOT IN 
+	(SELECT ID
+	FROM fmban_data
+	WHERE (sugarconscious = 0 AND lowsodium = 0 AND lowfat = 0 AND category <> 'NULL' AND category <> 'supplements') OR category IN ('wine', 'beer'))
+	AND category <> 'NULL' AND category <> 'supplements';
+
+
+-- price per serving of healthy food
+WITH healthy_food AS 
+	(SELECT *
+	FROM fmban_data
+	WHERE ID NOT IN 
+		(SELECT ID
+		FROM fmban_data
+		WHERE (sugarconscious = 0 AND lowsodium = 0 AND lowfat = 0 AND category <> 'NULL' AND category <> 'supplements') OR category IN ('wine', 'beer'))
+		AND category <> 'NULL' AND category <> 'supplements') 
+SELECT ID, category, subcategory, product, price/100 AS food_price, totalsecondarysize, ROUND(((price/100)/totalsecondarysize),2) AS price_per_serving
+FROM healthy_food
+WHERE price <> 0 AND totalsecondarysize <> 0;
+
+-- price per serving unhealthy food
+WITH unhealthy_food AS
+	(SELECT *
+	FROM fmban_data
+	WHERE (sugarconscious = 0 AND lowsodium = 0 AND lowfat = 0 AND category <> 'NULL' AND category <> 'supplements') OR category IN ('wine', 'beer'))
+SELECT ID, category, subcategory, product, 
+	(CASE
+		WHEN category IN ('wine', 'beer') THEN price
+        ELSE price/100
+	END) food_price,
+	totalsecondarysize, 
+    ROUND((CASE
+		WHEN category IN ('wine', 'beer') THEN price/totalsecondarysize
+        ELSE (price/100)/totalsecondarysize
+	END),2) AS price_per_serving
+FROM unhealthy_food
+WHERE price <> 0 AND totalsecondarysize <> 0 AND price <> 599;
+
+-- average of price per serving unhealthy food
+WITH unhealthy_food AS
+	(SELECT *
+	FROM fmban_data
+	WHERE (sugarconscious = 0 AND lowsodium = 0 AND lowfat = 0 AND category <> 'NULL' AND category <> 'supplements') OR category IN ('wine', 'beer'))
+SELECT 
+    ROUND(AVG((CASE
+		WHEN category IN ('wine', 'beer') THEN price/totalsecondarysize
+        ELSE (price/100)/totalsecondarysize
+	END)),2) AS avg_price_per_serving
+FROM unhealthy_food
+WHERE price <> 0 AND totalsecondarysize <> 0 AND price <> 599;
+
+-- average of price per serving unhealthy food per category
+WITH unhealthy_food AS
+	(SELECT *
+	FROM fmban_data
+	WHERE (sugarconscious = 0 AND lowsodium = 0 AND lowfat = 0 AND category <> 'NULL' AND category <> 'supplements') OR category IN ('wine', 'beer'))
+SELECT category,
+    ROUND(AVG((CASE
+		WHEN category IN ('wine', 'beer') THEN price/totalsecondarysize
+        ELSE (price/100)/totalsecondarysize
+	END)),2) AS avg_price_per_serving
+FROM unhealthy_food
+WHERE price <> 0 AND totalsecondarysize <> 0 AND price <> 599
+GROUP BY category;
+
+-- insight 2
+-- number of diets
+SELECT "vegan", COUNT(vegan) AS `number`
+FROM fmban_data
+WHERE vegan = 1
+UNION
+SELECT "glutenfree", COUNT(glutenfree) AS `number`
+FROM fmban_data
+WHERE glutenfree = 1
+UNION
+SELECT "vegetarian", COUNT(vegetarian) AS `number`
+FROM fmban_data
+WHERE vegetarian = 1
+UNION
+SELECT "dairyfree", COUNT(dairyfree) AS `number`
+FROM fmban_data
+WHERE dairyfree = 1
+UNION
+SELECT "sugarconscious", COUNT(sugarconscious) AS `number`
+FROM fmban_data
+WHERE sugarconscious = 1
+UNION 
+SELECT "lowsodium", COUNT(lowsodium) AS `number`
+FROM fmban_data
+WHERE lowsodium = 1
+UNION
+SELECT "lowfat", COUNT(lowfat) AS `number`
+FROM fmban_data
+WHERE lowfat = 1
+ORDER BY `number` DESC;
+
+-- number of sugarconscious food
+SELECT COUNT(sugarconscious)/
+	(SELECT COUNT(ID) 
+	FROM fmban_data)
+FROM fmban_data
+WHERE sugarconscious = 1;
+
+
+-- insight 3
+-- number of foods per diet
+SELECT "ketofriendly", COUNT(ketofriendly) AS `number`
+FROM fmban_data
+WHERE ketofriendly = 1
+UNION
+SELECT "paleofriendly", COUNT(paleofriendly) AS `number`
+FROM fmban_data
+WHERE paleofriendly = 1
+UNION
+SELECT "wholefoodsdiet", COUNT(wholefoodsdiet) AS `number`
+FROM fmban_data
+WHERE wholefoodsdiet = 1
+UNION
+SELECT "kosher", COUNT(kosher) AS `number`
+FROM fmban_data
+WHERE kosher = 1
+UNION
+SELECT "engine2", COUNT(engine2) AS `number`
+FROM fmban_data
+WHERE engine2 = 1
+UNION
+SELECT "glutenfree", COUNT(glutenfree) AS `number`
+FROM fmban_data
+WHERE glutenfree = 1
+UNION
+SELECT "organic", COUNT(organic) AS `number`
+FROM fmban_data
+WHERE organic = 1
+ORDER BY `number` DESC;
+
+
+
+
+    
+
+
+
