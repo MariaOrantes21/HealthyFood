@@ -1,2 +1,4 @@
 # HealthyFood
 Analysis on the cost of healthy food on Whole Foods San Francisco
+
+The increasing popularity of eating healthy has gone from just restaurants to grocery or drug stores and has even been transformed into special diets for people to follow if they want to stay healthy. The variety of options of healthy food people can buy is growing and with it comes the question: now, does healthy food cost less? From actual data we can confirm that’s not the case but also there’s no significant difference in prices between healthy and unhealthy food either. Given that Whole Foods can take actions that might benefit their growing opportunities such as opening new stores or pay attention to unattended demand by increasing the inventory of food for diabetic people and expand product availability for new diet categories.
